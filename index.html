@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>画像おまかせフォーム</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--pink:#ff5fa2;--pink2:#ffe3ef;--ink:#2b2230;--sub:#7a6f80;--line:#eadfe8;--bg:#fff8fb;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Zen Maru Gothic",system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.6}
+  header{padding:22px 18px 8px;text-align:center}
+  header h1{margin:0;font-size:22px}
+  header p{margin:4px 0 0;color:var(--sub);font-size:13px}
+  main{max-width:560px;margin:0 auto;padding:8px 14px 120px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;margin:14px 0}
+  .q{font-weight:700;margin:0 0 10px;display:flex;gap:8px;align-items:center}
+  .num{background:var(--pink);color:#fff;border-radius:50%;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;flex:none}
+  .hint{color:var(--sub);font-size:12px;margin:-6px 0 10px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font:inherit;font-size:14px;color:var(--ink);cursor:pointer}
+  .chip.on{background:var(--pink);border-color:var(--pink);color:#fff}
+  input[type=text],textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font:inherit;font-size:16px;background:#fff}
+  textarea{min-height:70px;resize:vertical}
+  label.sm{display:block;font-size:13px;color:var(--sub);margin:10px 0 4px}
+  .bar{position:fixed;left:0;right:0;bottom:0;padding:12px 14px calc(12px + env(safe-area-inset-bottom));background:rgba(255,248,251,.95);border-top:1px solid var(--line)}
+  .bar button{display:block;width:100%;max-width:560px;margin:0 auto;border:0;border-radius:14px;padding:15px;font:inherit;font-weight:700;font-size:17px;background:var(--pink);color:#fff}
+  #out{display:none}
+  #prompt{white-space:pre-wrap;background:var(--pink2);border-radius:12px;padding:12px;font-size:14px}
+  .acts{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+  .btn{display:block;text-align:center;text-decoration:none;border-radius:14px;padding:14px;font:inherit;font-weight:700;font-size:16px;border:0;cursor:pointer}
+  .btn.main{background:#10a37f;color:#fff}
+  .btn.sub{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
+  .err{color:#d33;font-size:14px;margin-top:6px;display:none}
+  .note{font-size:12px;color:var(--sub);margin-top:10px}
+</style>
+</head>
+<body>
+<header>
+  <h1>画像おまかせフォーム</h1>
+  <p>選んで送るだけ。指示文は自動で作ります</p>
+</header>
+<main>
+  <div class="card">
+    <p class="q"><span class="num">1</span>店舗</p>
+    <div class="chips" data-key="store" data-single></div>
+    <label class="sm">その他の場合（店名）</label>
+    <input type="text" id="storeOther" placeholder="例：新店舗名">
+  </div>
+
+  <div class="card">
+    <p class="q"><span class="num">2</span>何の画像？</p>
+    <div class="chips" data-key="purpose" data-single></div>
+  </div>
+
+  <div class="card">
+    <p class="q"><span class="num">3</span>使う場所（サイズ）</p>
+    <div class="chips" data-key="size" data-single></div>
+  </div>
+
+  <div class="card">
+    <p class="q"><span class="num">4</span>雰囲気</p>
+    <p class="hint">いくつ選んでもOK</p>
+    <div class="chips" data-key="mood"></div>
+  </div>
+
+  <div class="card">
+    <p class="q"><span class="num">5</span>メインカラー</p>
+    <p class="hint">2つまでがおすすめ</p>
+    <div class="chips" data-key="color"></div>
+  </div>
+
+  <div class="card">
+    <p class="q"><span class="num">6</span>絵のタイプ</p>
+    <div class="chips" data-key="style" data-single></div>
+    <label class="sm">光の雰囲気（リアル写真のとき）</label>
+    <div class="chips" data-key="light" data-single></div>
+    <label class="sm">実際のキャストの写真を使う？</label>
+    <div class="chips" data-key="photo" data-single></div>
+    <p class="hint" style="margin:8px 0 0">※ 写真を使うときは本人の許可を取ってから。18歳未満のキャストは使わない</p>
+  </div>
+
+  <div class="card">
+    <p class="q"><span class="num">7</span>画像に入れる文字</p>
+    <p class="hint">AIは日本語の文字が崩れやすいので、短めがおすすめ</p>
+    <div class="chips" data-key="textmode" data-single></div>
+    <label class="sm">タイトル</label>
+    <input type="text" id="title" placeholder="例：ハロウィンイベント">
+    <label class="sm">日付・時間</label>
+    <input type="text" id="date" placeholder="例：10/31(土) 18:00〜">
+    <label class="sm">ひとこと</label>
+    <input type="text" id="catch" placeholder="例：仮装キャストがお出迎え♡">
+  </div>
+
+  <div class="card">
+    <p class="q"><span class="num">8</span>その他の希望（なくてOK）</p>
+    <textarea id="extra" placeholder="例：かぼちゃとお菓子をたくさん。背景は夜のお城"></textarea>
+  </div>
+
+  <div class="card" id="out">
+    <p class="q">できた指示文</p>
+    <div id="prompt"></div>
+    <div class="acts">
+      <a class="btn main" id="gpt" href="#" target="_blank" rel="noopener">ChatGPTで画像を作る</a>
+      <button class="btn sub" id="copy" type="button">指示文をコピー</button>
+    </div>
+    <p class="note" id="note">ボタンでChatGPTが開き、指示文が入った状態で始まります。うまく入らない時は「コピー」→ChatGPTに貼り付けてください。</p>
+  </div>
+  <p class="err" id="err"></p>
+</main>
+<div class="bar"><button id="make" type="button">指示文をつくる</button></div>
+
+<script>
+const OPTS = {
+  store:["Myu Myu","Franc","wool","秋葉","ドルメ","ランス","ラグーン","おおかみ","ワープ","大森","その他"],
+  purpose:["イベント告知","生誕祭","出勤・シフト告知","新メニュー","キャスト募集（求人）","日常のSNS投稿","季節のあいさつ"],
+  size:["正方形（Instagram投稿）","縦長（ストーリー・TikTok）","横長（X・バナー）"],
+  mood:["かわいい","ゆめかわ","小悪魔","クール","大人っぽい","ポップ","ラグジュアリー","レトロ","和風","ホラーかわいい"],
+  color:["ピンク","黒","白","赤","水色","紫","ミント","イエロー","ゴールド","パステル全般"],
+  style:["リアル写真（キャスト＋店内）","リアル写真（店内・小物だけ）","リアル写真（ドリンク・フード）","アニメ風イラスト","グラフィック（人物なし）"],
+  photo:["使わない（AIにおまかせ）","写真の顔そのままで作り直す","写真はそのまま・背景だけ変える"],
+  light:["暖色の間接照明","ネオン・カラーライト","窓からの自然光","夜のスポットライト","キラキラ玉ボケ"],
+  textmode:["文字なし（背景だけ）","タイトルだけ入れる","全部入れる"]
+};
+const sel = {};
+const STORE_HINT = {"Myu Myu":"ピンクと黒の小悪魔系メイドカフェ"};
+
+document.querySelectorAll('.chips').forEach(box=>{
+  const key=box.dataset.key, single=box.hasAttribute('data-single');
+  sel[key]=[];
+  OPTS[key].forEach(v=>{
+    const b=document.createElement('button');
+    b.type='button';b.className='chip';b.textContent=v;
+    b.onclick=()=>{
+      if(single){sel[key]=[v];box.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));b.classList.add('on');}
+      else{const i=sel[key].indexOf(v);if(i>=0){sel[key].splice(i,1);b.classList.remove('on');}else{sel[key].push(v);b.classList.add('on');}}
+      if(key==='store'){try{localStorage.setItem('lastStore',v)}catch(e){}}
+    };
+    box.appendChild(b);
+  });
+});
+// 前回の店舗を復元
+try{const s=localStorage.getItem('lastStore');if(s){document.querySelectorAll('[data-key=store] .chip').forEach(c=>{if(c.textContent===s)c.click()})}}catch(e){}
+// テキスト初期値
+document.querySelectorAll('[data-key=textmode] .chip')[1].click();
+document.querySelectorAll('[data-key=style] .chip')[0].click();
+document.querySelectorAll('[data-key=light] .chip')[0].click();
+document.querySelectorAll('[data-key=photo] .chip')[0].click();
+
+const val=id=>document.getElementById(id).value.trim();
+
+document.getElementById('make').onclick=()=>{
+  const err=document.getElementById('err');
+  let store=sel.store[0]==='その他'?val('storeOther'):sel.store[0];
+  const miss=[];
+  if(!store)miss.push('店舗');
+  if(!sel.purpose[0])miss.push('何の画像');
+  if(!sel.size[0])miss.push('サイズ');
+  if(miss.length){err.textContent='未選択：'+miss.join('・');err.style.display='block';err.scrollIntoView({behavior:'smooth'});return;}
+  err.style.display='none';
+
+  const sizeMap={"正方形（Instagram投稿）":"正方形 1:1","縦長（ストーリー・TikTok）":"縦長 9:16","横長（X・バナー）":"横長 16:9"};
+  const pm=sel.photo[0]||'';
+  const usePhoto=!pm.startsWith('使わない')&&pm!=='';
+  const bgOnly=pm.includes('背景だけ');
+  const L=[];
+  L.push(usePhoto?'添付した写真を使って、次の内容で画像を1枚生成してください。':'次の内容で画像を1枚生成してください。');
+  if(usePhoto){
+    L.push(bgOnly
+      ?'【写真の扱い】添付写真の人物は、顔・体・髪・衣装・ポーズを一切変えずにそのまま残す。変えるのは背景・光・装飾だけ'
+      :'【写真の扱い】添付写真の人物を主役にする。顔立ち・目・輪郭・髪型・髪色・ほくろなど、本人と分かる特徴は一切変えない。別人に見える加工や美肌の盛りすぎは禁止。ポーズと構図は下記に合わせてよい');
+  }
+  L.push('');
+  L.push('【お店】'+store+(STORE_HINT[store]?'（'+STORE_HINT[store]+'）':'')+'（コンセプトカフェ）');
+  L.push('【用途】'+sel.purpose[0]+'用のSNS画像');
+  L.push('【サイズ】'+sizeMap[sel.size[0]]);
+  if(sel.mood.length)L.push('【雰囲気】'+sel.mood.join('、'));
+  if(sel.color.length)L.push('【メインカラー】'+sel.color.join('、'));
+  const st=sel.style[0]||'';
+  const real=st.startsWith('リアル写真');
+  if(real){
+    L.push('【世界観】コンセプトカフェ（メイドカフェ・アイドルカフェ系）の実際の店内で撮った写真。凝った内装、カウンター、装飾、ドリンク、チェキなど、お店のリアルな空気感がある');
+    if(st.includes('キャスト')&&!usePhoto)L.push('【被写体】コンカフェの衣装（メイド服など）を着た20代の成人女性キャスト1〜2人。実在しない人物。自然な表情とポーズで、作り物っぽくない');
+    if(st.includes('店内')&&!usePhoto)L.push('【被写体】人物なし。店内の内装・小物・テーブルまわりを主役にする');
+    if(st.includes('ドリンク'))L.push('【被写体】お店のドリンクやフードを主役に。グラスの水滴、クリームや果物の質感が伝わる寄りの構図');
+    L.push('【写真の質感】フルサイズ一眼で撮影した本物の写真。50mm〜85mmレンズ、F1.8前後で背景がやわらかくボケる。光の入り方・影・反射が自然で、肌・髪・布・レース・ガラス・金属それぞれの質感がはっきり分かる。肌はのっぺりさせず、ほんのりフィルムのような粒子感');
+    if(sel.light[0])L.push('【光】'+sel.light[0]+'。光源の位置が分かる自然なライティング');
+    L.push('【避けること】イラスト感・CG感・3Dレンダリング感、テカテカの肌、子どもっぽすぎる甘さ、パステルの塗りつぶし、ありえない指や手');
+  }else if(st){
+    L.push('【絵のタイプ】'+st+'。甘くなりすぎず、コンカフェらしい大人っぽさも残す');
+  }
+  const tm=sel.textmode[0];
+  if(tm==='文字なし（背景だけ）'){
+    L.push('【文字】画像内に文字は一切入れない。後から文字を載せるので、中央か上部に文字を置ける余白を空ける');
+  }else{
+    const t=[];
+    if(val('title'))t.push('タイトル「'+val('title')+'」');
+    if(tm==='全部入れる'){if(val('date'))t.push('日付「'+val('date')+'」');if(val('catch'))t.push('ひとこと「'+val('catch')+'」');}
+    if(t.length)L.push('【入れる文字】'+t.join('、')+'。日本語は一字一句正確に、大きく読みやすく');
+    else L.push('【文字】画像内に文字は入れない');
+    if(tm==='タイトルだけ入れる'&&(val('date')||val('catch')))L.push('（参考：'+[val('date'),val('catch')].filter(Boolean).join(' / ')+' ※画像には入れない）');
+  }
+  if(val('extra'))L.push('【その他の希望】'+val('extra'));
+  L.push('');
+  L.push('【守ること】'+(usePhoto?'添付写真の人物以外の実在の人物':'実在の人物')+'・既存のアニメやゲームのキャラクター・他社ロゴは使わない。露出は控えめで、SNSに載せても問題ない健全なデザインにする。');
+  const p=L.join('\n');
+  document.getElementById('prompt').textContent=p;
+  const g=document.getElementById('gpt'), note=document.getElementById('note');
+  if(usePhoto){
+    g.href='https://chatgpt.com/';
+    g.textContent='① 指示文をコピーしてChatGPTを開く';
+    note.innerHTML='<b>写真を使うときの手順</b><br>① 上のボタンを押す（指示文が自動でコピーされます）<br>② ChatGPTの入力欄の「＋」からキャストの写真を添付<br>③ 入力欄を長押し→「ペースト」→送信';
+  }else{
+    g.href='https://chatgpt.com/?q='+encodeURIComponent(p);
+    g.textContent='ChatGPTで画像を作る';
+    note.textContent='ボタンでChatGPTが開き、指示文が入った状態で始まります。うまく入らない時は「コピー」→ChatGPTに貼り付けてください。';
+  }
+  const out=document.getElementById('out');out.style.display='block';out.scrollIntoView({behavior:'smooth'});
+};
+
+document.getElementById('gpt').addEventListener('click',()=>{
+  if(document.getElementById('gpt').href.indexOf('?q=')<0){
+    try{navigator.clipboard.writeText(document.getElementById('prompt').textContent).catch(()=>{})}catch(e){}
+  }
+});
+document.getElementById('copy').onclick=async(e)=>{
+  const b=e.currentTarget;
+  try{await navigator.clipboard.writeText(document.getElementById('prompt').textContent);b.textContent='コピーしました ✓';}
+  catch(x){
+    const r=document.createRange();r.selectNodeContents(document.getElementById('prompt'));
+    const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='選択しました → 長押しでコピー';
+  }
+  setTimeout(()=>b.textContent='指示文をコピー',2500);
+};
+</script>
+</body>
+</html>
