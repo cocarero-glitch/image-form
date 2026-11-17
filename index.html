@@ -128,6 +128,7 @@ const OPTS = {
 };
 const sel = {};
 const STORE_HINT = {"Myu Myu":"ピンクと黒の小悪魔系メイドカフェ"};
+const STORE_RULE = {"Myu Myu":"Myu Myuらしさとして、黒（黒レース・黒リボン・黒の小物や内装）を画面の3割くらい必ず入れて、ピンクの甘さを黒で引き締める。季節の衣装や装飾（クリスマスの赤など）のときも、黒は消さない"};
 
 document.querySelectorAll('.chips').forEach(box=>{
   const key=box.dataset.key, single=box.hasAttribute('data-single');
@@ -180,7 +181,8 @@ document.getElementById('make').onclick=()=>{
   L.push('【用途】'+sel.purpose[0]+'用のSNS画像');
   L.push('【サイズ】'+sizeMap[sel.size[0]]);
   if(sel.mood.length)L.push('【雰囲気】'+sel.mood.join('、'));
-  if(sel.color.length)L.push('【メインカラー】'+sel.color.join('、'));
+  if(sel.color.length)L.push('【メインカラー】'+sel.color.join('、')+'。どの色も画面の中ではっきり分かる量で使う（衣装や季節の色に負けて消えないように）');
+  if(STORE_RULE[store])L.push('【お店のルール】'+STORE_RULE[store]);
   const st=sel.style[0]||'';
   const real=st.startsWith('リアル写真');
   if(real){
