@@ -75,6 +75,9 @@
     <div class="chips" data-key="style" data-single></div>
     <label class="sm">光の雰囲気（リアル写真のとき）</label>
     <div class="chips" data-key="light" data-single></div>
+    <label class="sm">衣装（人物がいるとき）</label>
+    <div class="chips" data-key="costume" data-single></div>
+    <input type="text" id="costumeFree" placeholder="自由に指定（例：黒×ピンクのフリル、うさ耳カチューシャ）" style="margin-top:8px">
     <label class="sm">実際のキャストの写真を使う？</label>
     <div class="chips" data-key="photo" data-single></div>
     <p class="hint" style="margin:8px 0 0">※ 写真を使うときは本人の許可を取ってから。18歳未満のキャストは使わない</p>
@@ -118,6 +121,7 @@ const OPTS = {
   mood:["かわいい","ゆめかわ","小悪魔","クール","大人っぽい","ポップ","ラグジュアリー","レトロ","和風","ホラーかわいい"],
   color:["ピンク","黒","白","赤","水色","紫","ミント","イエロー","ゴールド","パステル全般"],
   style:["リアル写真（キャスト＋店内）","リアル写真（店内・小物だけ）","リアル写真（ドリンク・フード）","アニメ風イラスト","グラフィック（人物なし）"],
+  costume:["おまかせ","クラシックメイド","フレンチメイド","地雷系","量産型","アイドル衣装","ゴスロリ","チャイナ","着物・浴衣","サンタ","ハロウィン（魔女・小悪魔）","執事・男装"],
   photo:["使わない（AIにおまかせ）","写真の顔そのままで作り直す","写真はそのまま・背景だけ変える"],
   light:["暖色の間接照明","ネオン・カラーライト","窓からの自然光","夜のスポットライト","キラキラ玉ボケ"],
   textmode:["文字なし（背景だけ）","タイトルだけ入れる","全部入れる"]
@@ -146,6 +150,7 @@ document.querySelectorAll('[data-key=textmode] .chip')[1].click();
 document.querySelectorAll('[data-key=style] .chip')[0].click();
 document.querySelectorAll('[data-key=light] .chip')[0].click();
 document.querySelectorAll('[data-key=photo] .chip')[0].click();
+document.querySelectorAll('[data-key=costume] .chip')[0].click();
 
 const val=id=>document.getElementById(id).value.trim();
 
@@ -188,6 +193,14 @@ document.getElementById('make').onclick=()=>{
     L.push('【避けること】イラスト感・CG感・3Dレンダリング感、テカテカの肌、子どもっぽすぎる甘さ、パステルの塗りつぶし、ありえない指や手');
   }else if(st){
     L.push('【絵のタイプ】'+st+'。甘くなりすぎず、コンカフェらしい大人っぽさも残す');
+  }
+  const hasPerson=usePhoto||st.includes('キャスト')||st==='アニメ風イラスト';
+  const cs=sel.costume[0]||'おまかせ', cf=val('costumeFree');
+  if(hasPerson&&!bgOnly&&(cs!=='おまかせ'||cf)){
+    const parts=[];
+    if(cs!=='おまかせ')parts.push(cs);
+    if(cf)parts.push(cf);
+    L.push('【衣装】'+parts.join('。')+(usePhoto?'。写真の人物の衣装をこれに着せ替える（顔と髪型は変えない）':'')+'。生地・フリル・レースの質感まで丁寧に、露出は控えめ');
   }
   const tm=sel.textmode[0];
   if(tm==='文字なし（背景だけ）'){
